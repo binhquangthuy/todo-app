@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        BACKEND_IMAGE = 'todo-backend'
+        BACKEND_IMAGE           = 'todo-backend'
+        REGISTRY_CREDENTIALS_ID = 'docker-hub-credentials'
     }
 
     stages {
@@ -28,6 +29,19 @@ pipeline {
                 echo '📦 Building Backend Docker Image...'
                 dir('.') {
                     sh 'docker build -t ${BACKEND_IMAGE}:latest -t ${BACKEND_IMAGE}:${BUILD_NUMBER} ./backend'
+                }
+            }
+        }
+
+        stage('Push to Registry') {
+            steps {
+                echo '📤 Pushing Backend Docker image to registry...'
+                withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIALS_ID}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh 'echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin'
+                    sh 'docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${DOCKER_USERNAME}/${BACKEND_IMAGE}:${BUILD_NUMBER}'
+                    sh 'docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${DOCKER_USERNAME}/${BACKEND_IMAGE}:latest'
+                    sh 'docker push ${DOCKER_USERNAME}/${BACKEND_IMAGE}:${BUILD_NUMBER}'
+                    sh 'docker push ${DOCKER_USERNAME}/${BACKEND_IMAGE}:latest'
                 }
             }
         }
