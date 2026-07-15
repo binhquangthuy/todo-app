@@ -1,0 +1,376 @@
+{
+  "info": {
+    "_postman_id": "7a35368a-b9c6-48c0-bc6f-5b62b1a136b8",
+    "name": "Todo App API Tests",
+    "description": "Integration tests for the Todo Application REST API endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Get All Todos (Initial)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response is an array\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/todos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "todos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Create Todo (Valid)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Todo is created successfully with matching properties\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.exist;",
+              "    pm.expect(jsonData.title).to.eql(\"Learn Docker and CI/CD\");",
+              "    pm.expect(jsonData.description).to.eql(\"Finish setting up Jenkins pipeline and Docker containers\");",
+              "    pm.expect(jsonData.priority).to.eql(\"HIGH\");",
+              "    pm.expect(jsonData.completed).to.be.false;",
+              "    ",
+              "    // Save the created ID for subsequent requests",
+              "    pm.collectionVariables.set(\"createdTodoId\", jsonData.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Learn Docker and CI/CD\",\n  \"description\": \"Finish setting up Jenkins pipeline and Docker containers\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2026-07-20\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/todos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "todos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Create Todo (Invalid - Missing Title)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"This todo is invalid because title is missing\",\n  \"priority\": \"LOW\",\n  \"dueDate\": \"2026-07-20\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/todos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "todos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Get Todo by ID (Valid)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Todo details match the created object\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    var expectedId = pm.collectionVariables.get(\"createdTodoId\");",
+              "    pm.expect(jsonData.id).to.eql(expectedId);",
+              "    pm.expect(jsonData.title).to.eql(\"Learn Docker and CI/CD\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/todos/{{createdTodoId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "todos",
+            "{{createdTodoId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Get Todo by ID (Invalid - Not Found)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/todos/999999",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "todos",
+            "999999"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Update Todo (Valid)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Todo fields are updated successfully\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.title).to.eql(\"Learn Docker, CI/CD, and Kubernetes\");",
+              "    pm.expect(jsonData.description).to.eql(\"Expanded goal to cover orchestration\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Learn Docker, CI/CD, and Kubernetes\",\n  \"description\": \"Expanded goal to cover orchestration\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2026-07-25\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/todos/{{createdTodoId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "todos",
+            "{{createdTodoId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Toggle Todo Completion",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Todo completion field is toggled to true\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.completed).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/todos/{{createdTodoId}}/toggle",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "todos",
+            "{{createdTodoId}}",
+            "toggle"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Delete Todo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204 No Content\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/todos/{{createdTodoId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "todos",
+            "{{createdTodoId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. Get Deleted Todo (Verify Not Found)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/todos/{{createdTodoId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "todos",
+            "{{createdTodoId}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "createdTodoId",
+      "value": ""
+    }
+  ]
+}

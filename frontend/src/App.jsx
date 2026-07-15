@@ -18,6 +18,9 @@ export default function App() {
   
   // Feedback notification
   const [toast, setToast] = useState(null);
+  
+  // Custom delete confirmation state
+  const [deleteConfirmTodoId, setDeleteConfirmTodoId] = useState(null);
 
   // Fetch todos on mount
   useEffect(() => {
@@ -114,8 +117,6 @@ export default function App() {
   };
 
   const handleDeleteTodo = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this task?')) return;
-
     try {
       const response = await fetch(`/api/v1/todos/${id}`, {
         method: 'DELETE',
@@ -278,7 +279,7 @@ export default function App() {
                       key={todo.id}
                       todo={todo}
                       onToggle={handleToggleTodo}
-                      onDelete={handleDeleteTodo}
+                      onDelete={setDeleteConfirmTodoId}
                       onEdit={setEditingTodo}
                     />
                   ))}
@@ -306,6 +307,35 @@ export default function App() {
 
       {/* Action result notification banner */}
       <Toast toast={toast} onClose={() => setToast(null)} />
+
+      {/* Custom Confirmation Modal */}
+      {deleteConfirmTodoId && (
+        <div className="modal-overlay" id="delete-confirmation-modal">
+          <div className="modal-content">
+            <h3>Delete Task?</h3>
+            <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button 
+                onClick={() => setDeleteConfirmTodoId(null)} 
+                className="btn-secondary"
+                id="cancel-delete-btn"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  handleDeleteTodo(deleteConfirmTodoId);
+                  setDeleteConfirmTodoId(null);
+                }} 
+                className="btn-primary btn-danger"
+                id="confirm-delete-btn"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
