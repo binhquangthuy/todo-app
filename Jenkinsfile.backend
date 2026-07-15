@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        BACKEND_IMAGE = 'todo-backend'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📥 Checking out source code...'
+                checkout scm
+            }
+        }
+
+        stage('Test Backend') {
+            steps {
+                echo '🧪 Running Backend Unit Tests...'
+                dir('backend') {
+                    sh 'docker run --rm -v ${HOME}/.m2:/root/.m2 -v $(pwd):/app -w /app maven:3.9.6-eclipse-temurin-17-alpine mvn clean test'
+                }
+            }
+        }
+
+        stage('Build Backend Image') {
+            steps {
+                echo '📦 Building Backend Docker Image...'
+                dir('.') {
+                    sh 'docker build -t ${BACKEND_IMAGE}:latest -t ${BACKEND_IMAGE}:${BUILD_NUMBER} ./backend'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Backend pipeline finished successfully!'
+        }
+        failure {
+            echo '❌ Backend pipeline failed.'
+        }
+    }
+}

@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📥 Checking out source code...'
+                checkout scm
+            }
+        }
+
+        stage('Run API Tests') {
+            steps {
+                echo '🧪 Running API Integration Tests...'
+                dir('todo-api-tests') {
+                    sh 'chmod +x run-tests.sh'
+                    sh './run-tests.sh'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ API Tests pipeline finished successfully!'
+        }
+        failure {
+            echo '❌ API Tests pipeline failed.'
+        }
+    }
+}
