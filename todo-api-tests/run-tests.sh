@@ -17,8 +17,10 @@ then
     exit 1
 fi
 
-echo "📦 Installing/running Newman on-the-fly..."
-npx -y newman run Todo_App_API_Tests.postman_collection.json -e Todo_App_Local.postman_environment.json --reporters cli
+BASE_URL=${BASE_URL:-http://localhost}
+
+echo "📦 Installing/running Newman on-the-fly targeting ${BASE_URL}..."
+npx -y newman run Todo_App_API_Tests.postman_collection.json -e Todo_App_Local.postman_environment.json --env-var "baseUrl=${BASE_URL}" --reporters cli
 
 EXIT_CODE=$?
 
